@@ -1,0 +1,6 @@
+GET http://localhost:8181/api/chat-fruit/What is today's date?
+get_single_fruit-GET http://localhost:8181/api/chat-fruit/Get details of fruit id 2 of Amish-Protin shop
+find_fruits-GET http://localhost:8181/api/chat-fruit/Which Amish-Protin shop fruit get entry on 2025-09-02?
+find_fruits-GET http://localhost:8181/api/chat-fruit/Which Amish-Protin shop fruit get entry on today?
+enter_fruit_on_a_date-GET http://localhost:8181/api/chat-fruit/Take entry Amish-Protin shop fruit id 1 on 2025-08-05
+find_fruits-GET http://localhost:8181/api/chat-fruit/Which Amish-Protin shop fruit get entry on 2025-08-05?
