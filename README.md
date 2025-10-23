@@ -1,0 +1,2 @@
+# scholar
+LLM AI MCP API CHAT PROMPT
