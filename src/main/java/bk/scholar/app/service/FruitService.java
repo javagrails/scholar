@@ -51,6 +51,5 @@ public class FruitService {
       ids.add(id);
     }
     fruitEntryTable.put(date, ids);
-    System.out.println("ddd");
   }
 }

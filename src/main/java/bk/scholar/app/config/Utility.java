@@ -80,20 +80,20 @@ public class Utility {
       // Load the properties file located in the resources folder
       Properties propertiesJustFileName = Utility.loadProperties("Bandung.txt");
       // Print the loaded properties to the console
-      propertiesJustFileName.forEach((key, value) ->
+      /*propertiesJustFileName.forEach((key, value) ->
           System.out.println("propertiesJustFileName -> " + key + "=" + value)
-      );
-      System.out.println("");
+      );*/
+      //System.out.println("");
       // Load the properties using the Utility class
       Properties propertiesParamNewFile = Utility.loadProperties(new File("Bandung.txt"));
       // Print the loaded properties to the console
-      propertiesParamNewFile.forEach((key, value) ->
+      /*propertiesParamNewFile.forEach((key, value) ->
           System.out.println("propertiesParamNewFile -> " + key + "=" + value)
-      );
+      );*/
 
     } catch (IOException e) {
       // Handle exceptions (e.g., file not found, I/O errors)
-      System.err.println("Error loading properties: " + e.getMessage());
+      //System.err.println("Error loading properties: " + e.getMessage());
     }
   }
 

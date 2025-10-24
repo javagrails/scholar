@@ -15,14 +15,23 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Properties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 
 @Component
 public class GoogleConfig {
+
+  private static final Logger log = LoggerFactory.getLogger(GoogleConfig.class);
+  private final ResourceLoader resourceLoader;
+  private final PathResolver pathResolver;
 
   private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
   private static final String APPLICATION_NAME = "gtools";
@@ -37,10 +46,14 @@ public class GoogleConfig {
   private final Calendar calendarService;
   private final Drive driveService;
 
-  public GoogleConfig() {
+  public GoogleConfig(ResourceLoader resourceLoader, PathResolver pathResolver) {
     try {
+      this.resourceLoader = resourceLoader;
+      this.pathResolver = pathResolver;
       this.httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-      this.properties = Utility.loadProperties(new File("googletools.txt"));
+      //this.properties = Utility.loadProperties(new File(this.resourceLoader.getResource("classpath:googletools.txt").getInputStream().toString()));
+      this.properties = pathResolver.loadGoogleToolsProperties();
+      this.checkLog();
       this.credential = this.getCredentials();
       this.calendarService = this.buildCalendarService();
       this.driveService = this.buildDriveService();
@@ -53,24 +66,48 @@ public class GoogleConfig {
     }
   }
 
+  private void checkLog() {
+    final String cPath = String.valueOf(properties.get(CREDENTIALS_PATHNAME));
+    log.info("checkLog | CREDENTIALS_PATHNAME: {}", cPath);
+    final String tPath = String.valueOf(properties.get(TOKEN_PATHNAME));
+    log.info("checkLog | TOKEN_PATHNAME: {}", tPath);
+  }
+
   /**
    *
    * @return com.google.api.client.auth.oauth2.Credential credentialObject
    * @throws Exception
    */
   private Credential getCredentials() throws Exception {
-    InputStream in = new FileInputStream(String.valueOf(properties.get(CREDENTIALS_PATHNAME)));
-    GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
+    try {
+      // Resolve credentials file from classpath
+      String credentialsPath = properties.getProperty(CREDENTIALS_PATHNAME);
+      // Remove "classpath:" prefix
+      String credentialsResource = credentialsPath.replace("classpath:", "");
+      Resource credentialsResourceObj = resourceLoader.getResource("classpath:" + credentialsResource);
 
-    GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-        this.httpTransport, JSON_FACTORY, clientSecrets, SCOPES)
-        .setDataStoreFactory(new FileDataStoreFactory(new File(
-            String.valueOf(properties.get(TOKEN_PATHNAME)))))
-        .setAccessType("offline")
-        .build();
+      InputStream in = credentialsResourceObj.getInputStream();
+      GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY,
+          new InputStreamReader(in, StandardCharsets.UTF_8));
 
-    return new com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp(flow,
-        new com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver()).authorize("user");
+      // Resolve token directory from classpath
+      //String tokenPath = properties.getProperty(TOKEN_PATHNAME);
+      File tokenDirectory = pathResolver.getTokenDirectory();
+
+      GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
+          this.httpTransport, JSON_FACTORY, clientSecrets, SCOPES)
+          .setDataStoreFactory(new FileDataStoreFactory(tokenDirectory))
+          .setAccessType("offline")
+          .build();
+
+      return new com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp(
+          flow,
+          new com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver()).authorize(
+          "user");
+
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to create Google Authorization Flow", e);
+    }
   }
 
   /**
