@@ -20,3 +20,5 @@ SPRING AI LLM MCP SERVER TOOLS
 8. Can retrieve single/multiple data from your sql server
 9. Can process that data and present in different ways
 
+#### Full Slide Link of - SPRING MCP SERVER TALK @ AGILEBD
+[SPRING MCP SERVER TALK @ AGILEBD](https://speakerdeck.com/javagrails/spring-mcp-server-talk-at-agilebd)
